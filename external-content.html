@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>External HTML</title>
+</head>
+
+<body>
+    <button id="loginBtn">🔐 Login</button>
+    <button id="logoutBtn">🚪 Logout</button>
+
+    <script>
+        // Wait for DOM to be ready
+        document.addEventListener('DOMContentLoaded', () => {
+            const loginBtn = document.getElementById('loginBtn');
+            const logoutBtn = document.getElementById('logoutBtn');
+
+            loginBtn.addEventListener('click', () => {
+                window.parent.postMessage(
+                    { type: 'abahaBridge', data: { type: 'dynamic_form_detail', formId: '97' } },
+                    '*' // or restrict to parent origin
+                );
+            });
+
+            logoutBtn.addEventListener('click', () => {
+                window.parent.postMessage(
+                    { type: 'abahaBridge_follow_oa', data: {} },
+                    '*'
+                );
+            });
+        });
+    </script>
+</body>
+
+</html>
