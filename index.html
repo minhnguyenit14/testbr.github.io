@@ -11,26 +11,86 @@
     <button id="logoutBtn">🚪 Logout</button>
 
     <script>
-        // Wait for DOM to be ready
-        document.addEventListener('DOMContentLoaded', () => {
-            const loginBtn = document.getElementById('loginBtn');
-            const logoutBtn = document.getElementById('logoutBtn');
+  // Wait for DOM to be ready
+  document.addEventListener('DOMContentLoaded', () => {
+    /* ===============================
+     * Bridge availability check
+     * =============================== */
 
-            loginBtn.addEventListener('click', () => {
-                window.parent.postMessage(
-                    { type: 'abahaBridge', data: { type: 'dynamic_form_detail', formId: '97' } },
-                    '*' // or restrict to parent origin
-                );
-            });
+    let abahaBridgeAvailable = false;
 
-            logoutBtn.addEventListener('click', () => {
-                window.parent.postMessage(
-                    { type: 'abahaBridge_follow_oa', data: {} },
-                    '*'
-                );
-            });
-        });
-    </script>
+    function checkAbahaBridge() {
+      return new Promise((resolve) => {
+        const handleResponse = (event) => {
+          if (event.data?.type === 'abahaBridgeCheckResponse') {
+            abahaBridgeAvailable = event.data?.available === true;
+            window.removeEventListener('message', handleResponse);
+            resolve(abahaBridgeAvailable);
+          }
+        };
+
+        window.addEventListener('message', handleResponse);
+
+        window.parent.postMessage(
+          { type: 'abahaBridgeCheck' },
+          '*'
+        );
+
+        // Timeout after 1 second if no response
+        setTimeout(() => {
+          window.removeEventListener('message', handleResponse);
+          resolve(false);
+        }, 1000);
+      });
+    }
+
+    // Check bridge on page load
+    checkAbahaBridge().then((available) => {
+      if (available) {
+        alert('abahaBridge is available');
+      } else {
+        console.log('abahaBridge is not available, using fallback');
+      }
+    });
+
+    /* ===============================
+     * UI handlers
+     * =============================== */
+
+    const loginBtn = document.getElementById('loginBtn');
+    const logoutBtn = document.getElementById('logoutBtn');
+
+    loginBtn.addEventListener('click', () => {
+    if(!abahaBridgeAvailable) {
+        return;
+    }
+      window.parent.postMessage(
+        {
+          type: 'abahaBridge',
+          data: {
+            type: 'dynamic_form_detail',
+            formId: '97',
+          },
+        },
+        '*'
+      );
+    });
+
+    logoutBtn.addEventListener('click', () => {
+    if(!abahaBridgeAvailable) {
+        return;
+    }
+      window.parent.postMessage(
+        {
+          type: 'abahaBridge_follow_oa',
+          data: {},
+        },
+        '*'
+      );
+    });
+  });
+</script>
+
 </body>
 
 </html>
